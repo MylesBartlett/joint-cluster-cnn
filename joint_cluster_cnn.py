@@ -4,7 +4,7 @@ from tensorflow.contrib.layers import convolution2d, batch_norm, fully_connected
 from tensorflow.examples.tutorials.mnist import input_data
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
-from sklearn.datasets import fetch_mldata
+from sklearn.datasets import fetch_openml
 from sklearn.preprocessing import normalize
 from PIL import Image
 from munkres import Munkres
@@ -13,7 +13,10 @@ import timeit
 import logging
 import os.path
 
-class joint_cluster_cnn():
+
+__all__ = ["joint_cluster_cnn"]
+
+class joint_cluster_cnn:
 
     Ks = 20  # the number of nearest neighbours of a sample
     Kc = 5  # the number of nearest clusters of a cluster
@@ -79,7 +82,7 @@ class joint_cluster_cnn():
             self.K = 10
             self.logger.info('%.2f s, Finished extracting MNIST-full dataset', timeit.default_timer() - self.tic)
         elif 'usps' in dataset:
-            usps = fetch_mldata("USPS")
+            usps = fetch_openml("USPS")
             self.images = usps.data
             self.gnd = usps.target.astype(np.int) - 1
             self.image_size1 = 16
@@ -196,9 +199,9 @@ class joint_cluster_cnn():
                                 normalizer_fn=batch_norm, activation_fn=tf.nn.relu)  # 28 * 23
             net = max_pool2d(net, [2,2], [2,2], padding='SAME')  # 14 * 12
 
-        print net.get_shape()
+        print(net.get_shape())
         net = flatten(net)
-        print net.get_shape()
+        print(net.get_shape())
         net = fully_connected(net, num_outputs=160)
         net = tf.nn.l2_normalize(net, 1)
 
@@ -449,6 +452,8 @@ class joint_cluster_cnn():
         if num_triplet == 0:
             return 0,0,0
 
+        num_triplet = int(num_triplet)
+
         anc = np.zeros(num_triplet, np.int64)
         pos = np.zeros(num_triplet, np.int64)
         neg = np.zeros(num_triplet, np.int64)
@@ -471,6 +476,10 @@ class joint_cluster_cnn():
                                     break
 
         # self.logger.info('%.2f s, get %d triplets, anc: %d, pos: %d, neg: %d ', timeit.default_timer() - self.tic, num_triplet, anc[-1],pos[-1],neg[-1])
+
+        anc = anc.astype(np.int64)
+        pos = pos.astype(np.int64)
+        neg = neg.astype(np.int64)
 
         return anc, pos, neg
 
